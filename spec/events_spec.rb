@@ -44,7 +44,7 @@ describe 'Nested form', :js => true do
         it 'emits remove event for current association' do
           visit url
           2.times { click_link 'Add new task' }
-          click_link 'Remove'
+          first(:link, "Remove").click()
 
           page.should have_content 'Removed task field'
           page.should_not have_content 'Removed milestone field'

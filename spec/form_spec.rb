@@ -7,26 +7,28 @@ describe 'NestedForm' do
     page.should have_no_css('form .fields input[id$=name]')
     click_link 'Add new task'
     page.should have_css('form .fields input[id$=name]', :count => 1)
-    find('form .fields input[id$=name]').should be_visible
-    find('form .fields input[id$=_destroy]').value.should == 'false'
-
+    expect(page).to have_selector('form .fields input[id$=name]')
+    expect(page).to have_selector('form .fields input[id$=_destroy]', visible: false)
+    expect(find('form .fields input[id$=_destroy]', visible: false).value).to eq 'false'
     click_link 'Remove'
-    find('form .fields input[id$=_destroy]').value.should == '1'
-    find('form .fields input[id$=name]').should_not be_visible
+    expect(find('form .fields input[id$=_destroy]', visible: false).value).to eq '1'
+    expect(find('form .fields input[id$=name]', visible: false)).to_not be_visible
 
     click_link 'Add new task'
     click_link 'Add new task'
-    fields = all('form .fields')
-    fields.select { |field| field.visible? }.count.should == 2
-    fields.reject { |field| field.visible? }.count.should == 1
+    fields = all('form .fields', visible: false)
+    expect(fields.select { |field| field.visible? }.count).to eq 2
+    expect(fields.reject { |field| field.visible? }.count).to eq 1
   end
 
   it 'should work with jQuery', :js => true do
+    Capybara.exact = false
     visit '/projects/new'
     check_form
   end
 
   it 'should work with Prototype', :js => true do
+    Capybara.exact = false
     visit '/projects/new?type=prototype'
     check_form
   end

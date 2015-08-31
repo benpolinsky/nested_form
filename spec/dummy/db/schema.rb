@@ -9,30 +9,30 @@
 # from scratch. The latter is a flawed and unsustainable approach (the more migrations
 # you'll amass, the slower it'll run and the greater likelihood for issues).
 #
-# It's strongly recommended to check this file into your version control system.
+# It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130203095901) do
+ActiveRecord::Schema.define(version: 20130203095901) do
 
-  create_table "companies", :force => true do |t|
+  create_table "companies", force: :cascade do |t|
     t.string "name"
   end
 
-  create_table "milestones", :force => true do |t|
+  create_table "milestones", force: :cascade do |t|
     t.integer "task_id"
     t.string  "name"
   end
 
-  create_table "project_tasks", :force => true do |t|
+  create_table "project_tasks", force: :cascade do |t|
     t.integer "project_id"
     t.string  "name"
   end
 
-  create_table "projects", :force => true do |t|
+  create_table "projects", force: :cascade do |t|
     t.string  "name"
     t.integer "company_id"
   end
 
-  create_table "tasks", :force => true do |t|
+  create_table "tasks", force: :cascade do |t|
     t.integer "project_id"
     t.string  "name"
   end
