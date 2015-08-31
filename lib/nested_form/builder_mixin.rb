@@ -19,14 +19,20 @@ module NestedForm
     def link_to_add(*args, &block)
       options = args.extract_options!.symbolize_keys
       association = args.pop
-
-      unless object.respond_to?("#{association}_attributes=")
-        raise ArgumentError, "Invalid association. Make sure that accepts_nested_attributes_for is used for #{association.inspect} association."
+      
+      # add detection for a serialized field
+      # better way to detect?
+      unless object.respond_to?("#{association}_attributes=") || json_serializeable?(object, association)
+        raise ArgumentError, "Invalid association. Make sure that accepts_nested_attributes_for is used for #{association.inspect} association." 
       end
 
       model_object = options.delete(:model_object) do
         reflection = object.class.reflect_on_association(association)
-        reflection.klass.new
+        if reflection.present?
+          reflection.klass.new
+        else
+          object.send("#{association}=", {})
+        end
       end
 
       options[:class] = [options[:class], "add_nested_fields"].compact.join(" ")
@@ -107,6 +113,10 @@ module NestedForm
       assocs = object_name.to_s.scan(/(\w+)_attributes/).map(&:first)
       assocs << association
       assocs.join('_') + '_fields_blueprint'
+    end
+    
+    def json_serializeable?(object, association)
+      (object.attributes.include?(association.to_s) && object.respond_to?("#{association}="))
     end
   end
 end

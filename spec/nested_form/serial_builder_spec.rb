@@ -1,9 +1,9 @@
 require "spec_helper"
 
-[NestedForm::Builder, NestedForm::SimpleBuilder, defined?(NestedForm::FormtasticBuilder) ? NestedForm::FormtasticBuilder : nil].compact.each do |builder|
+[NestedForm::Builder].compact.each do |builder|
   describe builder do
-    let(:project) do
-      Project.new
+    let(:task) do
+      Task.new
     end
 
     let(:template) do
@@ -12,16 +12,16 @@ require "spec_helper"
       template
     end
     
-    context "with no options" do
+    context "with json" do
       subject do
-        builder.new(:item, project, template, {})
+        builder.new(:item, task, template, {})
       end
 
       describe '#link_to_add' do
         it "behaves similar to a Rails link_to" do
-          expect(subject.link_to_add("Add", :tasks)).to eq '<a class="add_nested_fields" data-association="tasks" data-blueprint-id="tasks_fields_blueprint" href="javascript:void(0)">Add</a>'
-          expect(subject.link_to_add("Add", :tasks, :class => "foo", :href => "url")).to eq '<a class="foo add_nested_fields" data-association="tasks" data-blueprint-id="tasks_fields_blueprint" href="url">Add</a>'
-          expect(subject.link_to_add(:tasks) { "Add" }).to eq '<a class="add_nested_fields" data-association="tasks" data-blueprint-id="tasks_fields_blueprint" href="javascript:void(0)">Add</a>'
+          expect(subject.link_to_add("Add", :notes)).to eq '<a class="add_nested_fields" data-association="notes" data-blueprint-id="notes_fields_blueprint" href="javascript:void(0)">Add</a>'
+          expect(subject.link_to_add("Add", :notes, :class => "foo", :href => "url")).to eq '<a class="foo add_nested_fields" data-association="notes" data-blueprint-id="notes_fields_blueprint" href="url">Add</a>'
+          expect(subject.link_to_add(:notes) { "Add" }).to eq '<a class="add_nested_fields" data-association="notes" data-blueprint-id="notes_fields_blueprint" href="javascript:void(0)">Add</a>'
         end
 
         it 'raises ArgumentError when missing association is provided' do
@@ -46,63 +46,35 @@ require "spec_helper"
 
         it 'has data-association attribute' do
           Capybara.exact = false
-          project.tasks.build
-          response = subject.fields_for(:tasks, :builder => builder) do |tf|
+          #project.tasks.build
+          response = subject.fields_for(:notes, :builder => builder) do |tf|
             tf.link_to_remove 'Remove'
           end
-          expect(response).to match("a[data-association='tasks']")
-        end
-
-        context 'when association is declared in a model by the class_name' do
-          it 'properly detects association name' do
-            Capybara.exact = false
-            project.assignments.build
-            response = subject.fields_for(:assignments, :builder => builder) do |tf|
-              tf.link_to_remove 'Remove'
-            end
-            expect(response).to match('a[data-association="assignments"]')
-          end
+          expect(response).to match("a[data-association='notes']")
         end
 
         context 'when there is more than one nested level' do
           it 'properly detects association name' do
             Capybara.exact = false
-            task = project.tasks.build
-            task.milestones.build
-            response = subject.fields_for(:tasks, :builder => builder) do |tf|
-              tf.fields_for(:milestones, :builder => builder) do |mf|
+            response = subject.fields_for(:notes, :builder => builder) do |tf|
+              tf.fields_for(:anything, :builder => builder) do |mf|
                 mf.link_to_remove 'Remove'
               end
             end
-            expect(response).to match 'a[data-association="milestones"]'
-          end
-        end
-
-        context 'has_one association' do
-          let(:company) { Company.new }
-          
-          subject { builder.new(:item, company, template, {}) }
-          Capybara.exact = false
-          it 'properly detects association name' do
-            response = subject.fields_for(:project, :builder => builder) do |f|
-              f.link_to_remove 'Remove'
-            end
-            expect(response).to match 'a[data-association="project"]'
+            expect(response).to match 'a[data-association="anything"]'
           end
         end
       end
 
-      describe '#fields_for' do
+      describe '#fields_for', focus: true do
         it "wraps nested fields each in a div with class" do
-          2.times { project.tasks.build }
-
           fields = if subject.is_a?(NestedForm::SimpleBuilder)
-            subject.simple_fields_for(:tasks) { "Task" }
+            subject.simple_fields_for(:notes) { "Note" }
           else
-            subject.fields_for(:tasks) { "Task" }
+            subject.fields_for(:notes) { "Note" }
           end
 
-          fields.should == '<div class="fields">Task</div><div class="fields">Task</div>'
+          fields.should == '<div class="fields">Note</div><div class="fields">Note</div>'
         end
       end
 
